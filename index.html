@@ -1,1 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Упаковочный калькулятор и документы</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+<div class="container">
+    <div class="no-print">
+        <h1>Калькулятор тиража и упаковки</h1>
+        
+        <div class="table-title">Таблица 1: Параметры заказа</div>
+        <table id="params-table">
+            <thead>
+                <tr>
+                    <th>Номер заказа</th>
+                    <th>Наименование</th>
+                    <th>Тираж (экз)</th>
+                    <th>Стандарт упаковки (пачка)</th>
+                    <th>Стандарт паллеты (пачек)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="text" id="order_num" value="76542"></td>
+                    <td><input type="text" id="order_name" value="Navigator"></td>
+                    <td><input type="number" id="total_copies" value="52300"></td>
+                    <td><input type="number" id="pack_std" value="150"></td>
+                    <td><input type="number" id="pallet_std" value="75"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="table-title">Таблица 2: Дополнительные неполные пачки и результаты расчета</div>
+        <table id="results-table">
+            <thead>
+                <tr>
+                    <th>Доп. неполная 1</th>
+                    <th>Доп. неполная 2</th>
+                    <th>Доп. неполная 3</th>
+                    <th>Доп. неполная 4</th>
+                    <th>Количество пачек всего</th>
+                    <th>Кол-во станд паллет</th>
+                    <th>Пачек в остат паллете</th>
+                    <th>Остаточная пачка экз</th>
+                    <th>Количество паллет всего</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><input type="number" id="extra_1" value="0"></td>
+                    <td><input type="number" id="extra_2" value="0"></td>
+                    <td><input type="number" id="extra_3" value="0"></td>
+                    <td><input type="number" id="extra_4" value="0"></td>
+                    <td><input type="text" id="res_total_packs" class="readonly-bg" readonly></td>
+                    <td><input type="text" id="res_std_pallets" class="readonly-bg" readonly></td>
+                    <td><input type="text" id="res_packs_in_rem_pallet" class="readonly-bg" readonly></td>
+                    <td><input type="text" id="res_rem_pack_copies" class="readonly-bg" readonly></td>
+                    <td><input type="text" id="res_total_pallets" class="readonly-bg" readonly></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <button class="print-btn" id="print-btn">🖨 Печать документов текущей вкладки</button>
+
+        <div class="tabs">
+            <button class="tab-btn active" id="btn-shipping">Сопроводительные листы</button>
+            <button class="tab-btn" id="btn-invoice">Фактура</button>
+        </div>
+    </div>
+
+    <!-- Вкладка сопроводительных листов -->
+    <div id="shipping-tab" class="tab-content active">
+        <div id="shipping-docs-container" class="shipping-grid"></div>
+    </div>
+
+    <!-- Вкладка фактуры -->
+    <div id="invoice-tab" class="tab-content">
+        <div id="invoice-docs-container" class="invoice-wrapper"></div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f6f9;
+    color: #333;
+}
+h1, h2 {
+    color: #2c3e50;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+.table-title {
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    color: #34495e;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background: #fff;
+}
+th, td {
+    border: 1px solid #bdc3c7;
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+}
+th {
+    background-color: #34495e;
+    color: white;
+}
+input[type="text"], input[type="number"] {
+    width: 90%;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 14px;
+}
+input:readonly, .readonly-bg {
+    background-color: #f9f9f9;
+    font-weight: bold;
+    color: #27ae60;
+}
+
+/* Вкладки */
+.tabs {
+    display: flex;
+    margin-top: 30px;
+    border-bottom: 2px solid #34495e;
+}
+.tab-btn {
+    padding: 10px 20px;
+    background: #e0e0e0;
+    border: none;
+    border-radius: 5px 5px 0 0;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.2s;
+}
+.tab-btn.active {
+    background: #34495e;
+    color: white;
+}
+.tab-content {
+    display: none;
+    padding: 20px 0;
+}
+.tab-content.active {
+    display: block;
+}
+
+.print-btn {
+    background-color: #27ae60;
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+.print-btn:hover {
+    background-color: #219653;
+}
+
+/* Бланки документов */
+.cut-line {
+    border-top: 2px dashed #7f8c8d;
+    text-align: center;
+    margin: 15px 0;
+    position: relative;
+    font-size: 12px;
+    color: #7f8c8d;
+}
+
+.doc-block {
+    border: 2px solid #000;
+    padding: 15px;
+    background: #fff;
+    box-sizing: border-box;
+}
+.doc-header {
+    text-align: center;
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+}
+.doc-line {
+    margin: 8px 0;
+    font-size: 14px;
+}
+.doc-line span {
+    font-weight: bold;
+    text-decoration: underline;
+}
+.signatures {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 25px;
+    font-size: 14px;
+}
+
+/* Сетка для вывода на печать */
+.shipping-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+.page-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+    border: 1px dashed #ccc;
+    padding: 10px;
+    background: #fff;
+}
+.column-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.invoice-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Правила для принтера */
+@media print {
+    body {
+        background: #fff;
+        margin: 0;
+        padding: 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .no-print {
+        display: none !important;
+    }
+    .container {
+        box-shadow: none;
+        padding: 0;
+        max-width: 100%;
+    }
+    .tab-content {
+        display: none !important;
+    }
+    .tab-content.active {
+        display: block !important;
+    }
+    .page-pair {
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+        height: 100vh;
+        page-break-after: always;
+        box-sizing: border-box;
+        border: none;
+        padding: 0;
+    }
+    .doc-block {
+        height: 48vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .invoice-page {
+        height: 100vh;
+        page-break-after: always;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-sizing: border-box;
+    }
+    .invoice-page .doc-block {
+        height: 47vh;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Навешивание обработчиков событий на интерактивные элементы
+    const inputs = document.querySelectorAll('input[type="text"], input[type="number"]');
+    inputs.forEach(input => {
+        input.addEventListener('input', calculateAll);
+    });
+
+    document.getElementById('print-btn').addEventListener('click', () => {
+        window.print();
+    });
+
+    document.getElementById('btn-shipping').addEventListener('click', function() {
+        switchTab('shipping-tab', this);
+    });
+
+    document.getElementById('btn-invoice').addEventListener('click', function() {
+        switchTab('invoice-tab', this);
+    });
+
+    // Стартовый расчет данных при загрузке страницы
+    calculateAll();
+});
+
+function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+}
+
+function calculateAll() {
+    const orderNum = document.getElementById('order_num').value || '';
+    const orderName = document.getElementById('order_name').value || '';
+    const totalCopies = parseInt(document.getElementById('total_copies').value) || 0;
+    const packStd = parseInt(document.getElementById('pack_std').value) || 0;
+    const palletStd = parseInt(document.getElementById('pallet_std').value) || 0;
+
+    const extra1 = parseInt(document.getElementById('extra_1').value) || 0;
+    const extra2 = parseInt(document.getElementById('extra_2').value) || 0;
+    const extra3 = parseInt(document.getElementById('extra_3').value) || 0;
+    const extra4 = parseInt(document.getElementById('extra_4').value) || 0;
+
+    let fullPacks = 0;
+    let remPackCopies = 0;
+    if (packStd > 0) {
+        fullPacks = Math.floor(totalCopies / packStd);
+        remPackCopies = totalCopies % packStd;
+    }
+
+    // Сортировка: сначала Полные, затем Остаток от деления, затем Дополнительные
+    let allPacksList = [];
+    for(let i = 0; i < fullPacks; i++) {
+        allPacksList.push(packStd);
+    }
+    if(remPackCopies > 0) {
+        allPacksList.push(remPackCopies);
+    }
+    if(extra1 > 0) allPacksList.push(extra1);
+    if(extra2 > 0) allPacksList.push(extra2);
+    if(extra3 > 0) allPacksList.push(extra3);
+    if(extra4 > 0) allPacksList.push(extra4);
+
+    const totalPacksCount = allPacksList.length;
+    let stdPalletsCount = 0;
+    let packsInRemPallet = 0;
+    let totalPalletsCount = 0;
+
+    if (palletStd > 0 && totalPacksCount > 0) {
+        stdPalletsCount = Math.floor(totalPacksCount / palletStd);
+        packsInRemPallet = totalPacksCount % palletStd;
+        totalPalletsCount = Math.ceil(totalPacksCount / palletStd);
+    }
+
+    document.getElementById('res_total_packs').value = totalPacksCount;
+    document.getElementById('res_std_pallets').value = stdPalletsCount;
+    document.getElementById('res_packs_in_rem_pallet').value = packsInRemPallet;
+    document.getElementById('res_rem_pack_copies').value = remPackCopies;
+    document.getElementById('res_total_pallets').value = totalPalletsCount;
+
+    let palletsData = [];
+    let currentPackIdx = 0;
+    for(let p = 1; p <= totalPalletsCount; p++) {
+        let packsInThisPallet = (p <= stdPalletsCount) ? palletStd : packsInRemPallet;
+        if (packsInThisPallet === 0) break;
+
+        let palletPacks = [];
+        let palletTotalCopies = 0;
+        for(let k = 0; k < packsInThisPallet; k++) {
+            let pSize = allPacksList[currentPackIdx++];
+            palletPacks.push(pSize);
+            palletTotalCopies += pSize;
+        }
+
+        let counts = {};
+        palletPacks.forEach(x => { counts[x] = (counts[x] || 0) + 1; });
+        let sortedSizes = Object.keys(counts).map(Number).sort((a,b) => b - a);
+        let breakdownStr = sortedSizes.map(sz => `${sz} экз. х ${counts[sz]} пач.`).join(' + ');
+
+        palletsData.push({
+            num: p,
+            totalCopies: palletTotalCopies,
+            breakdown: breakdownStr
+        });
+    }
+
+    // Отрисовка сопроводительных листов (Сетка 2х2 по парам)
+    let shippingContainer = document.getElementById('shipping-docs-container');
+    shippingContainer.innerHTML = '';
+
+    for(let i = 0; i < palletsData.length; i += 2) {
+        let p1 = palletsData[i];
+        let p2 = palletsData[i+1];
+
+        let pagePair = document.createElement('div');
+        pagePair.className = 'page-pair';
+
+        let col1 = document.createElement('div');
+        col1.className = 'column-pair';
+        col1.appendChild(createShippingBlock(p1, orderNum, orderName));
+        col1.appendChild(createCutLine());
+        col1.appendChild(createShippingBlock(p1, orderNum, orderName));
+        pagePair.appendChild(col1);
+
+        let col2 = document.createElement('div');
+        col2.className = 'column-pair';
+        if(p2) {
+            col2.appendChild(createShippingBlock(p2, orderNum, orderName));
+            col2.appendChild(createCutLine());
+            col2.appendChild(createShippingBlock(p2, orderNum, orderName));
+        } else {
+            let emptyBlock = document.createElement('div');
+            emptyBlock.className = 'doc-block';
+            emptyBlock.style.visibility = 'hidden';
+            col2.appendChild(emptyBlock);
+        }
+        pagePair.appendChild(col2);
+
+        shippingContainer.appendChild(pagePair);
+    }
+
+    // Отрисовка фактур
+    let invoiceContainer = document.getElementById('invoice-docs-container');
+    invoiceContainer.innerHTML = '';
+
+    let globalCounts = {};
+    allPacksList.forEach(x => { globalCounts[x] = (globalCounts[x] || 0) + 1; });
+    let globalSortedSizes = Object.keys(globalCounts).map(Number).sort((a,b) => b - a);
+    let globalBreakdownStr = globalSortedSizes.map(sz => `${sz} экз. х ${globalCounts[sz]} пач.`).join(' + ');
+
+    let invoicePage = document.createElement('div');
+    invoicePage.className = 'invoice-page';
+
+    let invData = {
+        orderNum: orderNum,
+        orderName: orderName,
+        totalCopies: totalCopies + extra1 + extra2 + extra3 + extra4,
+        breakdown: globalBreakdownStr,
+        totalPallets: totalPalletsCount
+    };
+
+    invoicePage.appendChild(createInvoiceBlock(invData));
+    invoicePage.appendChild(createCutLine());
+    invoicePage.appendChild(createInvoiceBlock(invData));
+
+    invoiceContainer.appendChild(invoicePage);
+}
+
+function createShippingBlock(pData, orderNum, orderName) {
+    let block = document.createElement('div');
+    block.className = 'doc-block';
+    if(!pData) return block;
+    
+    block.innerHTML = `
+        <div class="doc-header">Сопроводительный лист (Паллета № ${pData.num})</div>
+        <div class="doc-line">Номер заказа: <span>&nbsp;${orderNum}&nbsp;</span></div>
+        <div class="doc-line">Наименование продукции: <span>&nbsp;${orderName}&nbsp;</span></div>
+        <div class="doc-line">Всего экз. на паллете: <span>&nbsp;${pData.totalCopies.toLocaleString('ru-RU')} экз.&nbsp;</span></div>
+        <div class="doc-line">Расшифровка по пачкам: <span>&nbsp;${pData.breakdown}&nbsp;</span></div>
+        <div class="signatures">
+            <div>Сдал: __________________</div>
+            <div>Принял: __________________</div>
+        </div>
+    `;
+    return block;
+}
+
+function createInvoiceBlock(invData) {
+    let block = document.createElement('div');
+    block.className = 'doc-block';
+    block.innerHTML = `
+        <div class="doc-header">АО «Советская Сибирь»</div>
+        <div class="doc-header" style="font-size: 18px; margin-top: 5px;">ФАКТУРА № _____</div>
+        <div class="doc-line" style="margin-top: 15px;">Номер заказа: <span>&nbsp;${invData.orderNum}&nbsp;</span></div>
+        <div class="doc-line">Наименование продукции: <span>&nbsp;${invData.orderName}&nbsp;</span></div>
+        <div class="doc-line">Общее количество (Тираж): <span>&nbsp;${invData.totalCopies.toLocaleString('ru-RU')} экз.&nbsp;</span></div>
+        <div class="doc-line">Количество паллет всего: <span>&nbsp;${invData.totalPallets}&nbsp;</span></div>
+        <div class="doc-line" style="margin-top: 10px;">Примечание (Раскладка пачек): <span>&nbsp;${invData.breakdown}&nbsp;</span></div>
+        <div class="signatures" style="margin-top: 35px;">
+            <div>Сдал: __________________</div>
+            <div>Принял: __________________</div>
+        </div>
+    `;
+    return block;
+}
+
+function createCutLine() {
+    let div = document.createElement('div');
+    div.className = 'cut-line';
+    div.innerText = 'Линия разреза ✂---------------------------------------';
+    return div;
+}
