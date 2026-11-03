@@ -2,511 +2,704 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Упаковочный калькулятор и документы</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Расчет упаковки и документов</title>
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --primary-hover: #1e40af;
+            --success-color: #10b981;
+            --gray-light: #f3f4f6;
+            --border-color: #d1d5db;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9fafb;
+            color: #1f2937;
+        }
+        .no-print {
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        h2 { color: var(--primary-color); margin-top: 0; }
+        .grid-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #4b5563;
+        }
+        .form-group input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group input:focus {
+            outline: 2px solid var(--primary-color);
+        }
+        
+        .main-table-container {
+            overflow-x: auto;
+            margin-bottom: 25px;
+        }
+        table.main-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+        }
+        table.main-table th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px;
+            font-weight: normal;
+        }
+        table.main-table td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: #ffffff;
+        }
+        table.main-table tr.calc-row td {
+            background-color: #f9fafb;
+            font-weight: bold;
+        }
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: inline-block;
+        }
+        .status-yes { background-color: #d1fae5; color: #065f46; }
+        .status-no { background-color: #e5e7eb; color: #374151; }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            color: #6b7280;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        .print-actions {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .btn-print {
+            background-color: var(--success-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-print:hover { background-color: #059669; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Print Documents Styling */
+        .doc-page-vertical {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            padding: 15mm;
+            box-sizing: border-box;
+        }
+        .doc-page-horizontal {
+            width: 297mm;
+            min-height: 210mm;
+            background: white;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+            padding: 15mm;
+            box-sizing: border-box;
+        }
+
+        /* Soprovoditelny List (Vertical, 2 parts) */
+        .soprovod-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: space-between;
+        }
+        .soprovod-part {
+            border: 2px solid #000;
+            padding: 15px;
+            box-sizing: border-box;
+            height: 47%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+        .cut-line {
+            border-top: 2px dashed #9ca3af;
+            text-align: center;
+            color: #6b7280;
+            font-size: 12px;
+            margin: 15px 0;
+            position: relative;
+        }
+        .cut-line span {
+            position: relative;
+            top: -10px;
+            background: #f9fafb;
+            padding: 0 10px;
+        }
+        .soprovod-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .soprovod-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .soprovod-grid div {
+            border-bottom: 1px solid #000;
+            padding: 4px 0;
+        }
+        .soprovod-grid div span {
+            font-weight: bold;
+        }
+        .soprovod-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+        .soprovod-table th, .soprovod-table td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: center;
+        }
+        .soprovod-table th { background-color: #f3f4f6; }
+        .soprovod-footer {
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .soprovod-signatures {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        /* Faktura (Horizontal, 2 parts A5) */
+        .faktura-container {
+            display: flex;
+            gap: 20px;
+            height: 100%;
+            width: 100%;
+        }
+        .faktura-part {
+            width: 50%;
+            border: 1px solid #000;
+            padding: 15px;
+            box-sizing: border-box;
+            font-size: 12px;
+        }
+        .faktura-vertical-cut {
+            border-left: 2px dashed #9ca3af;
+            margin: 0 5px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .faktura-vertical-cut span {
+            writing-mode: vertical-rl;
+            color: #6b7280;
+            background: white;
+            padding: 10px 0;
+            font-size: 11px;
+        }
+        .faktura-title {
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .faktura-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .faktura-table th, .faktura-table td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: left;
+        }
+        .faktura-table th { background-color: #f3f4f6; text-align: center; }
+
+        /* Print Media */
+        @media print {
+            body { margin: 0; background: none; color: #000; }
+            .no-print { display: none !important; }
+            .print-actions { display: none !important; }
+            .tabs { display: none !important; }
+            .doc-page-vertical {
+                width: 210mm;
+                height: 297mm;
+                page-break-after: always;
+                box-shadow: none;
+                padding: 10mm;
+                margin: 0;
+            }
+            .doc-page-horizontal {
+                width: 297mm;
+                height: 210mm;
+                page-break-after: always;
+                box-shadow: none;
+                padding: 10mm;
+                margin: 0;
+            }
+            .cut-line span { background: white; }
+            @page {
+                size: auto;
+                margin: 0;
+            }
+            #soprovod-tab-content.active { display: block !important; }
+            #faktura-tab-content.active { display: block !important; }
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
     <div class="no-print">
-        <h1>Калькулятор тиража и упаковки</h1>
+        <h2>Управление заказом и упаковочными параметрами</h2>
+        <div class="grid-inputs">
+            <div class="form-group">
+                <label>Номер заказа</label>
+                <input type="text" id="orderNum" value="76542">
+            </div>
+            <div class="form-group">
+                <label>Наименование заказа</label>
+                <input type="text" id="orderName" value="Навигатор">
+            </div>
+            <div class="form-group">
+                <label>Общий тираж (экз.)</label>
+                <input type="number" id="totalCopies" value="52300" min="1">
+            </div>
+            <div class="form-group">
+                <label>Стандарт упаковки (пачка)</label>
+                <input type="number" id="packSize" value="150" min="1">
+            </div>
+            <div class="form-group">
+                <label>Стандарт паллеты (пачек)</label>
+                <input type="number" id="palletSize" value="75" min="1">
+            </div>
+        </div>
         
-        <div class="table-title">Таблица 1: Параметры заказа</div>
-        <table id="params-table">
-            <thead>
-                <tr>
-                    <th>Номер заказа</th>
-                    <th>Наименование</th>
-                    <th>Тираж (экз)</th>
-                    <th>Стандарт упаковки (пачка)</th>
-                    <th>Стандарт паллеты (пачек)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="text" id="order_num" value="76542"></td>
-                    <td><input type="text" id="order_name" value="Navigator"></td>
-                    <td><input type="number" id="total_copies" value="52300"></td>
-                    <td><input type="number" id="pack_std" value="150"></td>
-                    <td><input type="number" id="pallet_std" value="75"></td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="grid-inputs" style="background: #f0fdf4; padding: 15px; border-radius: 6px; border: 1px solid #bbf7d0;">
+            <div class="form-group">
+                <label>Доп. неполная 1 (экз)</label>
+                <input type="number" id="extra1" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label>Доп. неполная 2 (экз)</label>
+                <input type="number" id="extra2" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label>Доп. неполная 3 (экз)</label>
+                <input type="number" id="extra3" value="0" min="0">
+            </div>
+            <div class="form-group">
+                <label>Доп. неполная 4 (экз)</label>
+                <input type="number" id="extra4" value="0" min="0">
+            </div>
+        </div>
 
-        <div class="table-title">Таблица 2: Дополнительные неполные пачки и результаты расчета</div>
-        <table id="results-table">
-            <thead>
-                <tr>
-                    <th>Доп. неполная 1</th>
-                    <th>Доп. неполная 2</th>
-                    <th>Доп. неполная 3</th>
-                    <th>Доп. неполная 4</th>
-                    <th>Количество пачек всего</th>
-                    <th>Кол-во станд паллет</th>
-                    <th>Пачек в остат паллете</th>
-                    <th>Остаточная пачка экз</th>
-                    <th>Количество паллет всего</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td><input type="number" id="extra_1" value="0"></td>
-                    <td><input type="number" id="extra_2" value="0"></td>
-                    <td><input type="number" id="extra_3" value="0"></td>
-                    <td><input type="number" id="extra_4" value="0"></td>
-                    <td><input type="text" id="res_total_packs" class="readonly-bg" readonly></td>
-                    <td><input type="text" id="res_std_pallets" class="readonly-bg" readonly></td>
-                    <td><input type="text" id="res_packs_in_rem_pallet" class="readonly-bg" readonly></td>
-                    <td><input type="text" id="res_rem_pack_copies" class="readonly-bg" readonly></td>
-                    <td><input type="text" id="res_total_pallets" class="readonly-bg" readonly></td>
-                </tr>
-            </tbody>
-        </table>
-        
-        <button class="print-btn" id="print-btn">🖨 Печать документов текущей вкладки</button>
+        <div class="main-table-container">
+            <table class="main-table">
+                <thead>
+                    <tr>
+                        <th>Номер заказа</th>
+                        <th>Наименование</th>
+                        <th>Тираж</th>
+                        <th>Стандарт упаковки</th>
+                        <th>Наличие остат. пачки</th>
+                        <th>Итого пачек</th>
+                        <th>Стандарт паллеты</th>
+                        <th>Кол-во станд. паллет</th>
+                        <th>Пачек в остат. паллете</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="calc-row">
+                        <td id="tdOrderNum">-</td>
+                        <td id="tdOrderName">-</td>
+                        <td id="tdTotal">-</td>
+                        <td id="tdPackSize">-</td>
+                        <td id="tdHasRemainder">-</td>
+                        <td id="tdTotalPacks">-</td>
+                        <td id="tdPalletSize">-</td>
+                        <td id="tdFullPallets">-</td>
+                        <td id="tdRemainderPalletPacks">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
         <div class="tabs">
-            <button class="tab-btn active" id="btn-shipping">Сопроводительные листы</button>
-            <button class="tab-btn" id="btn-invoice">Фактура</button>
+            <button class="tab-btn active" onclick="switchTab('soprovod')">Сопроводительные листы</button>
+            <button class="tab-btn" onclick="switchTab('faktura')">Фактура (А5 х2)</button>
+        </div>
+        
+        <div class="print-actions">
+            <button class="btn-print" onclick="window.print()">
+                <span>🖨️ Распечатать текущий документ</span>
+            </button>
         </div>
     </div>
 
-    <!-- Вкладка сопроводительных листов -->
-    <div id="shipping-tab" class="tab-content active">
-        <div id="shipping-docs-container" class="shipping-grid"></div>
+    <!-- TAB 1: SOPROVODITELNYE LISTY -->
+    <div id="soprovod-tab-content" class="tab-content active">
+        <div id="soprovodPagesContainer"></div>
     </div>
 
-    <!-- Вкладка фактуры -->
-    <div id="invoice-tab" class="tab-content">
-        <div id="invoice-docs-container" class="invoice-wrapper"></div>
+    <!-- TAB 2: FAKTURA -->
+    <div id="faktura-tab-content" class="tab-content">
+        <div class="doc-page-horizontal">
+            <div class="faktura-container" id="fakturaContainer">
+                <!-- Will be dynamically generated twice side-by-side -->
+            </div>
+        </div>
     </div>
-</div>
 
-<script src="script.js"></script>
+    <script>
+        // Track inputs
+        const inputs = ['orderNum', 'orderName', 'totalCopies', 'packSize', 'palletSize', 'extra1', 'extra2', 'extra3', 'extra4'];
+        inputs.forEach(id => {
+            document.getElementById(id).addEventListener('input', calculateData);
+        });
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            if(tab === 'soprovod') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('soprovod-tab-content').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('faktura-tab-content').classList.add('active');
+            }
+        }
+
+        function calculateData() {
+            const orderNum = document.getElementById('orderNum').value;
+            const orderName = document.getElementById('orderName').value;
+            const totalCopies = parseInt(document.getElementById('totalCopies').value) || 0;
+            const packSize = parseInt(document.getElementById('packSize').value) || 1;
+            const palletSize = parseInt(document.getElementById('palletSize').value) || 1;
+            
+            const e1 = parseInt(document.getElementById('extra1').value) || 0;
+            const e2 = parseInt(document.getElementById('extra2').value) || 0;
+            const e3 = parseInt(document.getElementById('extra3').value) || 0;
+            const e4 = parseInt(document.getElementById('extra4').value) || 0;
+            
+            const totalExtraCopies = e1 + e2 + e3 + e4;
+            let extraPacksCount = 0;
+            let activeExtraPacks = [];
+            [e1, e2, e3, e4].forEach((val, idx) => {
+                if(val > 0) {
+                    extraPacksCount++;
+                    activeExtraPacks.push({ name: `доп. пач. ${idx+1}`, size: val });
+                }
+            });
+
+            // Base copies calculation
+            const mainCopies = Math.max(0, totalCopies - totalExtraCopies);
+            const fullPacks = Math.floor(mainCopies / packSize);
+            const remainderCopies = mainCopies % packSize;
+            
+            const hasMainRemainder = remainderCopies > 0;
+            const totalPacks = fullPacks + (hasMainRemainder ? 1 : 0) + extraPacksCount;
+            
+            const fullPallets = Math.floor(totalPacks / palletSize);
+            const remainderPalletPacks = totalPacks % palletSize;
+            const totalPallets = fullPallets + (remainderPalletPacks > 0 ? 1 : 0);
+
+            // Update Main Panel Table
+            document.getElementById('tdOrderNum').innerText = orderNum;
+            document.getElementById('tdOrderName').innerText = orderName;
+            document.getElementById('tdTotal').innerText = totalCopies.toLocaleString();
+            document.getElementById('tdPackSize').innerText = packSize;
+            
+            const remBadge = document.getElementById('tdHasRemainder');
+            if(hasMainRemainder) {
+                remBadge.innerHTML = `<span class="status-badge status-yes">ДА (${remainderCopies} экз.)</span>`;
+            } else {
+                remBadge.innerHTML = `<span class="status-badge status-no">НЕТ</span>`;
+            }
+            
+            document.getElementById('tdTotalPacks').innerText = totalPacks;
+            document.getElementById('tdPalletSize').innerText = palletSize;
+            document.getElementById('tdFullPallets').innerText = fullPallets;
+            document.getElementById('tdRemainderPalletPacks').innerText = remainderPalletPacks;
+
+            // Generate Soprovoditelnye Listy
+            generateSoprovoditelnye(totalPallets, fullPallets, remainderPalletPacks, orderNum, orderName, packSize, palletSize, fullPacks, hasMainRemainder, remainderCopies, activeExtraPacks, totalCopies);
+            
+            // Generate Faktura
+            generateFaktura(orderNum, orderName, totalCopies, fullPacks, packSize, hasMainRemainder, remainderCopies, activeExtraPacks);
+        }
+
+        function generateSoprovoditelnye(totalPallets, fullPallets, remainderPalletPacks, orderNum, orderName, packSize, palletSize, fullPacks, hasMainRemainder, remainderCopies, activeExtraPacks, totalCopies) {
+            const container = document.getElementById('soprovodPagesContainer');
+            container.innerHTML = '';
+
+            if(totalPallets === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#6b7280;">Нет данных для формирования паллет</div>';
+                return;
+            }
+
+            for(let i = 1; i <= totalPallets; i++) {
+                const isRemainderPallet = (i === totalPallets && remainderPalletPacks > 0);
+                
+                let totalPacksOnThisPallet = isRemainderPallet ? remainderPalletPacks : palletSize;
+                let totalCopiesOnThisPallet = 0;
+                let breakdownText = '';
+
+                if (!isRemainderPallet) {
+                    // Full Standard Pallet
+                    totalCopiesOnThisPallet = palletSize * packSize;
+                    breakdownText = `Всего пачек: ${palletSize}<br>👉 ${palletSize} цел. пач. по ${packSize} экз.`;
+                } else {
+                    // Remainder Pallet - gathers everything at the end
+                    let parts = [];
+                    let remainingFullPacksForThisPallet = remainderPalletPacks;
+
+                    // Figure out what goes into this remainder pallet
+                    // We know total copies on this pallet is totalCopies - (fullPallets * palletSize * packSize)
+                    totalCopiesOnThisPallet = totalCopies - (fullPallets * palletSize * packSize);
+
+                    // Reconstruct breakdown of packs specifically for the remainder pallet
+                    let packsCalculated = 0;
+                    
+                    // 1. Regular full packs remaining?
+                    // How many regular packs were already distributed? fullPallets * palletSize
+                    let distributedRegularPacks = fullPallets * palletSize;
+                    let totalAvailableRegularFullPacks = fullPacks;
+                    let regularFullPacksOnThisPallet = Math.max(0, totalAvailableRegularFullPacks - distributedRegularPacks);
+                    
+                    if (regularFullPacksOnThisPallet > 0) {
+                        parts.push(`${regularFullPacksOnThisPallet} цел. пач. по ${packSize} экз.`);
+                        packsCalculated += regularFullPacksOnThisPallet;
+                    }
+
+                    // 2. Main remainder pack?
+                    if (hasMainRemainder) {
+                        parts.push(`1 остат. пач. (${remainderCopies} экз.)`);
+                        packsCalculated += 1;
+                    }
+
+                    // 3. Extra manual packs?
+                    activeExtraPacks.forEach(ep => {
+                        parts.push(`1 ${ep.name} (${ep.size} экз.)`);
+                        packsCalculated += 1;
+                    });
+
+                    breakdownText = `Всего пачек: ${totalPacksOnThisPallet}<br>👉 ` + parts.join(' + ');
+                }
+
+                const pageHtml = `
+                    <div class="doc-page-vertical">
+                        <div class="soprovod-container">
+                            <!-- PART 1 -->
+                            <div class="soprovod-part">
+                                <div class="soprovod-header">АО «Советская Сибирь»<br>Сопроводительный лист (Паспорт паллеты)</div>
+                                <div class="soprovod-grid">
+                                    <div>Номер заказа: <span>${orderNum}</span></div>
+                                    <div>Наименование: <span>${orderName}</span></div>
+                                    <div>Паллета №: <span>${i} из ${totalPallets}</span></div>
+                                    <div>Дата: <span>${new Date().toLocaleDateString('ru-RU')}</span></div>
+                                </div>
+                                <table class="soprovod-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Назначение</th>
+                                            <th>Кол-во в экз-рах</th>
+                                            <th>Кол-во в пачках и расшифровка</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="font-size:10px; text-align:left; width:35%;">ПБЦ, ОЦ, Цех упаковки, ИД «Вояж», Склад №1(ЦЭ), Склад №2</td>
+                                            <td style="font-size:16px; font-weight:bold;">${totalCopiesOnThisPallet.toLocaleString()}</td>
+                                            <td style="text-align:left; font-size:12px; line-height:1.4;">${breakdownText}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="soprovod-footer">
+                                    <div class="soprovod-signatures">
+                                        <div>Сдал цех: _________________</div>
+                                        <div>Принял (ЦЭ): _________________</div>
+                                        <div>Сдал (подпись): ___________ Время: ____</div>
+                                        <div>Получатель: _______________ Время: ____</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CUT LINE -->
+                            <div class="cut-line"><span>✂ Линия отреза (Дубликат паспорта)</span></div>
+
+                            <!-- PART 2 (DUPLICATE) -->
+                            <div class="soprovod-part">
+                                <div class="soprovod-header">АО «Советская Сибирь»<br>Сопроводительный лист (Паспорт паллеты)</div>
+                                <div class="soprovod-grid">
+                                    <div>Номер заказа: <span>${orderNum}</span></div>
+                                    <div>Наименование: <span>${orderName}</span></div>
+                                    <div>Паллета №: <span>${i} из ${totalPallets}</span></div>
+                                    <div>Дата: <span>${new Date().toLocaleDateString('ru-RU')}</span></div>
+                                </div>
+                                <table class="soprovod-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Назначение</th>
+                                            <th>Кол-во в экз-рах</th>
+                                            <th>Кол-во в пачках и расшифровка</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="font-size:10px; text-align:left; width:35%;">ПБЦ, ОЦ, Цех упаковки, ИД «Вояж», Склад №1(ЦЭ), Склад №2</td>
+                                            <td style="font-size:16px; font-weight:bold;">${totalCopiesOnThisPallet.toLocaleString()}</td>
+                                            <td style="text-align:left; font-size:12px; line-height:1.4;">${breakdownText}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="soprovod-footer">
+                                    <div class="soprovod-signatures">
+                                        <div>Сдал цех: _________________</div>
+                                        <div>Принял (ЦЭ): _________________</div>
+                                        <div>Сдал (подпись): ___________ Время: ____</div>
+                                        <div>Получатель: _______________ Время: ____</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += pageHtml;
+            }
+        }
+
+        function generateFaktura(orderNum, orderName, totalCopies, fullPacks, packSize, hasMainRemainder, remainderCopies, activeExtraPacks) {
+            const container = document.getElementById('fakturaContainer');
+            
+            // Build remark string
+            let remarkParts = [];
+            if(fullPacks > 0) {
+                remarkParts.push(`${fullPacks} пач. x ${packSize} экз.`);
+            }
+            if(hasMainRemainder) {
+                remarkParts.push(`1 пач. x ${remainderCopies} экз.`);
+            }
+            activeExtraPacks.forEach(ep => {
+                remarkParts.push(`1 пач. x ${ep.size} экз. (${ep.name})`);
+            });
+            
+            const remarkText = remarkParts.length > 0 ? remarkParts.join('<br>+ ') : 'Стандартная упаковка';
+
+            const singleFakturaHtml = `
+                <div class="faktura-part">
+                    <div style="font-weight:bold; text-align:center;">АО «Советская Сибирь»</div>
+                    <div style="font-size:10px; text-align:center; margin-bottom:5px;">г. Новосибирск</div>
+                    <div style="text-align:right; font-size:10px;">«_____»______________________20___г.</div>
+                    
+                    <div class="faktura-title">Фактура № _____</div>
+                    
+                    <div style="margin-bottom:4px;"><b>Кому:</b> ____________________________________________________</div>
+                    <div style="margin-bottom:10px;"><b>Через кого:</b> ______________________________________________</div>
+                    
+                    <table class="faktura-table">
+                        <thead>
+                            <tr>
+                                <th>№ заказа</th>
+                                <th>Наименование продукции</th>
+                                <th>Количество</th>
+                                <th>Примечание (раскладка)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="text-align:center; font-weight:bold;">${orderNum}</td>
+                                <td>${orderName}</td>
+                                <td style="text-align:center; font-weight:bold; font-size:13px;">${totalCopies.toLocaleString()}</td>
+                                <td style="font-size:10px; line-height:1.3;">${remarkText}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" style="text-align:right; font-weight:bold;">Тираж:</td>
+                                <td style="text-align:center; font-weight:bold;">${totalCopies.toLocaleString()}</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" style="text-align:right; font-weight:bold;">Сдано:</td>
+                                <td style="text-align:center; font-weight:bold;">${totalCopies.toLocaleString()}</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div style="display:flex; justify-content:space-between; margin-top:20px; font-size:11px;">
+                        <div><b>Принял:</b> ___________________</div>
+                        <div><b>Сдал:</b> ___________________</div>
+                    </div>
+                </div>
+            `;
+
+            // Insert twice side-by-side with a vertical cut line
+            container.innerHTML = `
+                ${singleFakturaHtml}
+                <div class="faktura-vertical-cut"><span>✂ Линия отреза для А5 документов</span></div>
+                ${singleFakturaHtml}
+            `;
+        }
+
+        // Initial run
+        calculateData();
+    </script>
 </body>
 </html>
-
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background-color: #f4f6f9;
-    color: #333;
-}
-h1, h2 {
-    color: #2c3e50;
-}
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-}
-.table-title {
-    font-weight: bold;
-    margin-top: 15px;
-    margin-bottom: 5px;
-    color: #34495e;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 20px;
-    background: #fff;
-}
-th, td {
-    border: 1px solid #bdc3c7;
-    padding: 10px;
-    text-align: center;
-    font-size: 14px;
-}
-th {
-    background-color: #34495e;
-    color: white;
-}
-input[type="text"], input[type="number"] {
-    width: 90%;
-    padding: 6px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    text-align: center;
-    font-size: 14px;
-}
-input:readonly, .readonly-bg {
-    background-color: #f9f9f9;
-    font-weight: bold;
-    color: #27ae60;
-}
-
-/* Вкладки */
-.tabs {
-    display: flex;
-    margin-top: 30px;
-    border-bottom: 2px solid #34495e;
-}
-.tab-btn {
-    padding: 10px 20px;
-    background: #e0e0e0;
-    border: none;
-    border-radius: 5px 5px 0 0;
-    cursor: pointer;
-    margin-right: 5px;
-    font-size: 16px;
-    font-weight: bold;
-    transition: 0.2s;
-}
-.tab-btn.active {
-    background: #34495e;
-    color: white;
-}
-.tab-content {
-    display: none;
-    padding: 20px 0;
-}
-.tab-content.active {
-    display: block;
-}
-
-.print-btn {
-    background-color: #27ae60;
-    color: white;
-    padding: 12px 25px;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-bottom: 20px;
-    font-weight: bold;
-}
-.print-btn:hover {
-    background-color: #219653;
-}
-
-/* Бланки документов */
-.cut-line {
-    border-top: 2px dashed #7f8c8d;
-    text-align: center;
-    margin: 15px 0;
-    position: relative;
-    font-size: 12px;
-    color: #7f8c8d;
-}
-
-.doc-block {
-    border: 2px solid #000;
-    padding: 15px;
-    background: #fff;
-    box-sizing: border-box;
-}
-.doc-header {
-    text-align: center;
-    font-weight: bold;
-    font-size: 16px;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-}
-.doc-line {
-    margin: 8px 0;
-    font-size: 14px;
-}
-.doc-line span {
-    font-weight: bold;
-    text-decoration: underline;
-}
-.signatures {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 25px;
-    font-size: 14px;
-}
-
-/* Сетка для вывода на печать */
-.shipping-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 40px;
-}
-.page-pair {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-gap: 20px;
-    border: 1px dashed #ccc;
-    padding: 10px;
-    background: #fff;
-}
-.column-pair {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.invoice-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-/* Правила для принтера */
-@media print {
-    body {
-        background: #fff;
-        margin: 0;
-        padding: 0;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
-    .no-print {
-        display: none !important;
-    }
-    .container {
-        box-shadow: none;
-        padding: 0;
-        max-width: 100%;
-    }
-    .tab-content {
-        display: none !important;
-    }
-    .tab-content.active {
-        display: block !important;
-    }
-    .page-pair {
-        grid-template-columns: 1fr 1fr;
-        width: 100%;
-        height: 100vh;
-        page-break-after: always;
-        box-sizing: border-box;
-        border: none;
-        padding: 0;
-    }
-    .doc-block {
-        height: 48vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-    .invoice-page {
-        height: 100vh;
-        page-break-after: always;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        box-sizing: border-box;
-    }
-    .invoice-page .doc-block {
-        height: 47vh;
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Навешивание обработчиков событий на интерактивные элементы
-    const inputs = document.querySelectorAll('input[type="text"], input[type="number"]');
-    inputs.forEach(input => {
-        input.addEventListener('input', calculateAll);
-    });
-
-    document.getElementById('print-btn').addEventListener('click', () => {
-        window.print();
-    });
-
-    document.getElementById('btn-shipping').addEventListener('click', function() {
-        switchTab('shipping-tab', this);
-    });
-
-    document.getElementById('btn-invoice').addEventListener('click', function() {
-        switchTab('invoice-tab', this);
-    });
-
-    // Стартовый расчет данных при загрузке страницы
-    calculateAll();
-});
-
-function switchTab(tabId, btn) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    btn.classList.add('active');
-}
-
-function calculateAll() {
-    const orderNum = document.getElementById('order_num').value || '';
-    const orderName = document.getElementById('order_name').value || '';
-    const totalCopies = parseInt(document.getElementById('total_copies').value) || 0;
-    const packStd = parseInt(document.getElementById('pack_std').value) || 0;
-    const palletStd = parseInt(document.getElementById('pallet_std').value) || 0;
-
-    const extra1 = parseInt(document.getElementById('extra_1').value) || 0;
-    const extra2 = parseInt(document.getElementById('extra_2').value) || 0;
-    const extra3 = parseInt(document.getElementById('extra_3').value) || 0;
-    const extra4 = parseInt(document.getElementById('extra_4').value) || 0;
-
-    let fullPacks = 0;
-    let remPackCopies = 0;
-    if (packStd > 0) {
-        fullPacks = Math.floor(totalCopies / packStd);
-        remPackCopies = totalCopies % packStd;
-    }
-
-    // Сортировка: сначала Полные, затем Остаток от деления, затем Дополнительные
-    let allPacksList = [];
-    for(let i = 0; i < fullPacks; i++) {
-        allPacksList.push(packStd);
-    }
-    if(remPackCopies > 0) {
-        allPacksList.push(remPackCopies);
-    }
-    if(extra1 > 0) allPacksList.push(extra1);
-    if(extra2 > 0) allPacksList.push(extra2);
-    if(extra3 > 0) allPacksList.push(extra3);
-    if(extra4 > 0) allPacksList.push(extra4);
-
-    const totalPacksCount = allPacksList.length;
-    let stdPalletsCount = 0;
-    let packsInRemPallet = 0;
-    let totalPalletsCount = 0;
-
-    if (palletStd > 0 && totalPacksCount > 0) {
-        stdPalletsCount = Math.floor(totalPacksCount / palletStd);
-        packsInRemPallet = totalPacksCount % palletStd;
-        totalPalletsCount = Math.ceil(totalPacksCount / palletStd);
-    }
-
-    document.getElementById('res_total_packs').value = totalPacksCount;
-    document.getElementById('res_std_pallets').value = stdPalletsCount;
-    document.getElementById('res_packs_in_rem_pallet').value = packsInRemPallet;
-    document.getElementById('res_rem_pack_copies').value = remPackCopies;
-    document.getElementById('res_total_pallets').value = totalPalletsCount;
-
-    let palletsData = [];
-    let currentPackIdx = 0;
-    for(let p = 1; p <= totalPalletsCount; p++) {
-        let packsInThisPallet = (p <= stdPalletsCount) ? palletStd : packsInRemPallet;
-        if (packsInThisPallet === 0) break;
-
-        let palletPacks = [];
-        let palletTotalCopies = 0;
-        for(let k = 0; k < packsInThisPallet; k++) {
-            let pSize = allPacksList[currentPackIdx++];
-            palletPacks.push(pSize);
-            palletTotalCopies += pSize;
-        }
-
-        let counts = {};
-        palletPacks.forEach(x => { counts[x] = (counts[x] || 0) + 1; });
-        let sortedSizes = Object.keys(counts).map(Number).sort((a,b) => b - a);
-        let breakdownStr = sortedSizes.map(sz => `${sz} экз. х ${counts[sz]} пач.`).join(' + ');
-
-        palletsData.push({
-            num: p,
-            totalCopies: palletTotalCopies,
-            breakdown: breakdownStr
-        });
-    }
-
-    // Отрисовка сопроводительных листов (Сетка 2х2 по парам)
-    let shippingContainer = document.getElementById('shipping-docs-container');
-    shippingContainer.innerHTML = '';
-
-    for(let i = 0; i < palletsData.length; i += 2) {
-        let p1 = palletsData[i];
-        let p2 = palletsData[i+1];
-
-        let pagePair = document.createElement('div');
-        pagePair.className = 'page-pair';
-
-        let col1 = document.createElement('div');
-        col1.className = 'column-pair';
-        col1.appendChild(createShippingBlock(p1, orderNum, orderName));
-        col1.appendChild(createCutLine());
-        col1.appendChild(createShippingBlock(p1, orderNum, orderName));
-        pagePair.appendChild(col1);
-
-        let col2 = document.createElement('div');
-        col2.className = 'column-pair';
-        if(p2) {
-            col2.appendChild(createShippingBlock(p2, orderNum, orderName));
-            col2.appendChild(createCutLine());
-            col2.appendChild(createShippingBlock(p2, orderNum, orderName));
-        } else {
-            let emptyBlock = document.createElement('div');
-            emptyBlock.className = 'doc-block';
-            emptyBlock.style.visibility = 'hidden';
-            col2.appendChild(emptyBlock);
-        }
-        pagePair.appendChild(col2);
-
-        shippingContainer.appendChild(pagePair);
-    }
-
-    // Отрисовка фактур
-    let invoiceContainer = document.getElementById('invoice-docs-container');
-    invoiceContainer.innerHTML = '';
-
-    let globalCounts = {};
-    allPacksList.forEach(x => { globalCounts[x] = (globalCounts[x] || 0) + 1; });
-    let globalSortedSizes = Object.keys(globalCounts).map(Number).sort((a,b) => b - a);
-    let globalBreakdownStr = globalSortedSizes.map(sz => `${sz} экз. х ${globalCounts[sz]} пач.`).join(' + ');
-
-    let invoicePage = document.createElement('div');
-    invoicePage.className = 'invoice-page';
-
-    let invData = {
-        orderNum: orderNum,
-        orderName: orderName,
-        totalCopies: totalCopies + extra1 + extra2 + extra3 + extra4,
-        breakdown: globalBreakdownStr,
-        totalPallets: totalPalletsCount
-    };
-
-    invoicePage.appendChild(createInvoiceBlock(invData));
-    invoicePage.appendChild(createCutLine());
-    invoicePage.appendChild(createInvoiceBlock(invData));
-
-    invoiceContainer.appendChild(invoicePage);
-}
-
-function createShippingBlock(pData, orderNum, orderName) {
-    let block = document.createElement('div');
-    block.className = 'doc-block';
-    if(!pData) return block;
-    
-    block.innerHTML = `
-        <div class="doc-header">Сопроводительный лист (Паллета № ${pData.num})</div>
-        <div class="doc-line">Номер заказа: <span>&nbsp;${orderNum}&nbsp;</span></div>
-        <div class="doc-line">Наименование продукции: <span>&nbsp;${orderName}&nbsp;</span></div>
-        <div class="doc-line">Всего экз. на паллете: <span>&nbsp;${pData.totalCopies.toLocaleString('ru-RU')} экз.&nbsp;</span></div>
-        <div class="doc-line">Расшифровка по пачкам: <span>&nbsp;${pData.breakdown}&nbsp;</span></div>
-        <div class="signatures">
-            <div>Сдал: __________________</div>
-            <div>Принял: __________________</div>
-        </div>
-    `;
-    return block;
-}
-
-function createInvoiceBlock(invData) {
-    let block = document.createElement('div');
-    block.className = 'doc-block';
-    block.innerHTML = `
-        <div class="doc-header">АО «Советская Сибирь»</div>
-        <div class="doc-header" style="font-size: 18px; margin-top: 5px;">ФАКТУРА № _____</div>
-        <div class="doc-line" style="margin-top: 15px;">Номер заказа: <span>&nbsp;${invData.orderNum}&nbsp;</span></div>
-        <div class="doc-line">Наименование продукции: <span>&nbsp;${invData.orderName}&nbsp;</span></div>
-        <div class="doc-line">Общее количество (Тираж): <span>&nbsp;${invData.totalCopies.toLocaleString('ru-RU')} экз.&nbsp;</span></div>
-        <div class="doc-line">Количество паллет всего: <span>&nbsp;${invData.totalPallets}&nbsp;</span></div>
-        <div class="doc-line" style="margin-top: 10px;">Примечание (Раскладка пачек): <span>&nbsp;${invData.breakdown}&nbsp;</span></div>
-        <div class="signatures" style="margin-top: 35px;">
-            <div>Сдал: __________________</div>
-            <div>Принял: __________________</div>
-        </div>
-    `;
-    return block;
-}
-
-function createCutLine() {
-    let div = document.createElement('div');
-    div.className = 'cut-line';
-    div.innerText = 'Линия разреза ✂---------------------------------------';
-    return div;
-}
